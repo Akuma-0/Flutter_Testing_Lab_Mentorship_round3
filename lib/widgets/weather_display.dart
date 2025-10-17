@@ -17,7 +17,7 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
   final List<String> _cities = ['New York', 'London', 'Tokyo', 'Invalid City'];
 
   double celsiusToFahrenheit(double celsius) {
-    return celsius * 9 / 5;
+    return (celsius * 9 / 5) + 32;
   }
 
   double fahrenheitToCelsius(double fahrenheit) {
@@ -32,9 +32,8 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
       return null;
     }
 
-    
     if (DateTime.now().millisecond % 4 == 0) {
-      return {'city': city, 'temperature': 22.5}; 
+      return {'city': city, 'temperature': 22.5};
     }
 
     return {
@@ -57,10 +56,16 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
       });
     }
 
-    
     final data = await _fetchWeatherData(_selectedCity);
+    if (data == null) {
+      setState(() {
+        _error = 'Failed to load weather data.';
+        _isLoading = false;
+      });
+      return;
+    }
     setState(() {
-      _weatherData = WeatherData.fromJson(data); 
+      _weatherData = WeatherData.fromJson(data);
       _isLoading = false;
     });
   }
@@ -127,9 +132,15 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
           ),
           const SizedBox(height: 16),
 
-          if (_isLoading && _error == null)
+          if (_isLoading )
             const Center(child: CircularProgressIndicator())
-          
+          else if (_error != null)
+            Center(
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            )
           else if (_weatherData != null)
             Card(
               elevation: 4,
@@ -199,8 +210,7 @@ class _WeatherDisplayState extends State<WeatherDisplay> {
                   ],
                 ),
               ),
-            )
-          
+            ),
         ],
       ),
     );
@@ -225,8 +235,8 @@ class WeatherData {
   final String city;
   final double temperatureCelsius;
   final String description;
-  final int humidity;
-  final double windSpeed;
+  final String humidity;
+  final String windSpeed;
   final String icon;
 
   WeatherData({
@@ -238,15 +248,14 @@ class WeatherData {
     required this.icon,
   });
 
-  
   factory WeatherData.fromJson(Map<String, dynamic>? json) {
     return WeatherData(
-      city: json!['city'],
-      temperatureCelsius: json['temperature'].toDouble(),
-      description: json['description'],
-      humidity: json['humidity'], 
-      windSpeed: json['windSpeed'].toDouble(), 
-      icon: json['icon'], 
+      city: json!['city'] ?? 'Unknown',
+      temperatureCelsius: json['temperature']?.toDouble() ?? 0.0,
+      description: json['description'] ?? 'No description',
+      humidity: json['humidity']?.toString() ?? 'Unknown',
+      windSpeed: json['windSpeed']?.toString() ?? 'Unknown',
+      icon: json['icon'] ?? '❓',
     );
   }
 }
