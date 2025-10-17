@@ -28,9 +28,17 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
   void addItem(String id, String name, double price, {double discount = 0.0}) {
     setState(() {
-      _items.add(
-        CartItem(id: id, name: name, price: price, discount: discount),
-      );
+      _items
+              .firstWhere(
+                (item) => item.id == id,
+                orElse: () => CartItem(id: '', name: '', price: 0),
+              )
+              .id
+              .isNotEmpty
+          ? _items.firstWhere((item) => item.id == id).quantity++
+          : _items.add(
+              CartItem(id: id, name: name, price: price, discount: discount),
+            );
     });
   }
 
@@ -70,13 +78,13 @@ class _ShoppingCartState extends State<ShoppingCart> {
   double get totalDiscount {
     double discount = 0;
     for (var item in _items) {
-      discount += item.discount * item.quantity;
+      discount += item.discount * item.quantity * item.price;
     }
     return discount;
   }
 
   double get totalAmount {
-    return subtotal + totalDiscount;
+    return subtotal - totalDiscount;
   }
 
   int get totalItems {
@@ -159,8 +167,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
                 itemCount: _items.length,
                 itemBuilder: (context, index) {
                   final item = _items[index];
-                  final itemTotal = item.price * item.quantity;
-
+                  final itemTotal =
+                      ((item.price - (item.price * item.discount)) *
+                      item.quantity);
                   return Card(
                     child: ListTile(
                       title: Text(item.name),
