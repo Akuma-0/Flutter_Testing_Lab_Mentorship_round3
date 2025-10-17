@@ -13,19 +13,26 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nameController = TextEditingController();
+  final Key emailFieldKey = const ValueKey('email_field');
+  final Key passwordFieldKey = const ValueKey('password_field');
+  final Key confirmPasswordFieldKey = const ValueKey('confirm_password_field');
+  final Key nameFieldKey = const ValueKey('name_field');
 
   bool _isLoading = false;
   String _message = '';
 
   bool isValidEmail(String email) {
-    return email.contains('@');
+    return isEmailValid(email);
   }
 
   bool isValidPassword(String password) {
-    return true;
+    return isPasswordValid(password);
   }
 
   Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     setState(() {
       _isLoading = true;
       _message = '';
@@ -55,6 +62,7 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
                 labelText: 'Full Name',
                 border: OutlineInputBorder(),
               ),
+              key: nameFieldKey,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your full name';
@@ -72,6 +80,7 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
                 labelText: 'Email',
                 border: OutlineInputBorder(),
               ),
+              key: emailFieldKey,
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -91,6 +100,7 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
                 border: OutlineInputBorder(),
                 helperText: 'At least 8 characters with numbers and symbols',
               ),
+              key: passwordFieldKey,
               obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -109,6 +119,7 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
                 labelText: 'Confirm Password',
                 border: OutlineInputBorder(),
               ),
+              key: confirmPasswordFieldKey,
               obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -155,4 +166,16 @@ class _UserRegistrationFormState extends State<UserRegistrationForm> {
     _nameController.dispose();
     super.dispose();
   }
+}
+
+bool isEmailValid(String email) {
+  return RegExp(
+    r'^.+@[a-zA-Z]+\.{1}[a-zA-Z]+(\.{0,1}[a-zA-Z]+)$',
+  ).hasMatch(email);
+}
+
+bool isPasswordValid(String password) {
+  return RegExp(
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
+  ).hasMatch(password);
 }
